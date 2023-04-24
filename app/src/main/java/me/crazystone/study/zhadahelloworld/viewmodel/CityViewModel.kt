@@ -6,28 +6,19 @@ import androidx.lifecycle.ViewModel
 
 class CityViewModel : ViewModel() {
 
-    private val cityData = MutableLiveData<String>()
-    private val messageData = MutableLiveData<String>()
-    private val list = MutableLiveData<MutableList<String>>()
+    private val accountData = MutableLiveData<String>()
+    private val timeData = MutableLiveData<Int>()
 
-    init {
-        list.value = mutableListOf()
+    fun updateAccount(message: String) {
+        accountData.value = message
     }
 
-    fun update(message: String) {
-        messageData.value = message
+    fun updateTime(time: Int) {
+        timeData.value = time
     }
 
-    fun add(message: String) {
-        var _list = list.value
-//        Log.d("wtf","_list:" + _list)
-        _list?.add(message)
-        list.value = _list!!
-    }
+    fun getAccount(): LiveData<String> = accountData
 
-    fun getMessageData(): LiveData<String> = messageData
+    fun getTime(): LiveData<Int> = timeData
 
-    fun getCityData(): LiveData<String> = cityData
-
-    fun getList(): LiveData<MutableList<String>> = list
 }

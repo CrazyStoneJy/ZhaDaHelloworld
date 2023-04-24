@@ -16,11 +16,9 @@ import me.crazystone.study.zhadahelloworld.R
 class MainActivity : AppCompatActivity() {
 
     var etAccount: EditText? = null
-    var account: String? = null
     var tvAccount: TextView? = null
     var etTime: EditText? = null
     var tvTime: TextView? = null
-    var time: Int? = null
     var btnCommit: Button? = null
 
     val cityViewModel: CityViewModel by viewModels()
@@ -34,26 +32,25 @@ class MainActivity : AppCompatActivity() {
         etTime = findViewById(R.id.et_time)
         tvTime = findViewById(R.id.tv_time)
 
-        cityViewModel.getMessageData().observe(this, { message ->
+        cityViewModel.getAccount().observe(this, { message ->
             Log.d("wtf", "update data:" + message)
             tvAccount?.text = message
         })
 
-        cityViewModel.getList().observe(this, { messages ->
-            Log.d("wtf", "update list:" + messages.toString())
+        cityViewModel.getTime().observe(this, { message ->
+            if (message > 0) {
+                tvTime?.text = formatTime(message)
+            } else {
+                tvTime?.text = ""
+            }
         })
-
 
         etAccount?.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-//                account = s.toString()
-//                Log.d("wtf", "text:" + account)
-//                tvAccount?.text = account
-//                cityViewModel.update(s.toString())
-                cityViewModel.add(s.toString())
+                cityViewModel.updateAccount(s.toString())
             }
 
             override fun afterTextChanged(s: Editable?) {
@@ -65,13 +62,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val str = s.toString()
-                if (!str.equals("")) {
-                    time = str.toInt()
-                    Log.d("wtf", "time:" + str)
-                    tvTime?.text = formatTime(time!!)
+                val message = s.toString()
+                if ("".equals(message)) {
+                    cityViewModel.updateTime(0)
                 } else {
-                    tvTime?.text = ""
+                    cityViewModel.updateTime(message.toInt())
                 }
             }
 
@@ -82,10 +77,15 @@ class MainActivity : AppCompatActivity() {
 
         btnCommit = findViewById(R.id.bt_commit)
         btnCommit?.setOnClickListener {
-            val intent = Intent()
-            intent.putExtra("account", account)
-            intent.putExtra("time", time)
             intent.setClass(this@MainActivity, ListActivity::class.java)
+            intent.apply {
+                putExtra("account", cityViewModel.getAccount().value)
+                if (cityViewModel.getTime().value!! > 60 * 60) {
+                    putExtra("time", 60 * 60)
+                } else {
+                    putExtra("time", cityViewModel.getTime().value)
+                }
+            }
             startActivity(intent)
         }
 
@@ -101,6 +101,8 @@ class MainActivity : AppCompatActivity() {
             sb.append("m")
             sb.append(time % 60)
             sb.append("s")
+        } else {
+            sb.append("time too large")
         }
         Log.d("wtf", "sb:" + sb.toString())
         return sb.toString()
